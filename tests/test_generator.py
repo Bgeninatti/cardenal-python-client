@@ -2,7 +2,7 @@ import unittest
 import zmq
 import threading
 import json
-from CardenalClient.client import CardenalClient
+from CardenalGenerator.generator import CardenalGenerator
 
 
 class MockServer(object):
@@ -43,20 +43,19 @@ class MockServer(object):
                 if 'msg' not in msg.keys():
                     socket.send_json({
                         'status': 501,
-                        'msg': "No se especifico un mensaje para la " +
-                        "notificación."
+                        'msg': "No se especificó un mensaje para la "
+                               "notificación."
                     })
                     continue
 
-                if all((k not in ('username', 'usernames', 'user_id', 'users_ids') for k in msg.keys())):
+                if 'generator' not in msg.keys():
                     socket.send_json({
                         'status': 502,
-                        'msg': 'No se especifico ningún destinatario para el' +
-                        ' mensaje.'})
+                        'msg': 'No se especificó el nombre del generador'})
                     continue
                 socket.send_json({
                     'status': 200,
-                    'msg': "Notificacion creada correctamente"})
+                    'msg': "Notificación creada correctamente"})
 
 
 class ClientTest(unittest.TestCase):
@@ -70,22 +69,19 @@ class ClientTest(unittest.TestCase):
         cls.server.stop()
 
     def setUp(self):
-        self.client = CardenalClient('localhost')
+        self.client = CardenalGenerator("generator", 'localhost')
 
     def tearDown(self):
         self.client.stop()
 
-    def test_detination(self):
-        with self.assertRaises(ValueError):
-            self.client.txt_msg('Mensaje')
-
     def test_one_txt_msg(self):
-        rta = self.client.txt_msg("prueba", user_id=1)
+        rta = self.client.send_message("prueba")
         self.assertEqual(rta['status'], 200)
 
     def test_1000_txt_msg(self):
         count = 0
         for i in range(0, 1000):
-            rta = self.client.txt_msg("Mensaje {}".format(i), user_id=1)
+            rta = self.client.send_message("Mensaje {}".format(i))
+            self.assertEqual(rta['status'], 200, "Message {0} failed".format(i))
             count += 1
         self.assertEqual(count, 1000)
