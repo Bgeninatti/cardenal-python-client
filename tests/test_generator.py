@@ -43,7 +43,7 @@ class MockServer(object):
                 if 'msg' not in msg.keys():
                     socket.send_json({
                         'status': 501,
-                        'msg': "No se especifico un mensaje para la "
+                        'msg': "No se especificó un mensaje para la "
                                "notificación."
                     })
                     continue
@@ -55,7 +55,7 @@ class MockServer(object):
                     continue
                 socket.send_json({
                     'status': 200,
-                    'msg': "Notificacion creada correctamente"})
+                    'msg': "Notificación creada correctamente"})
 
 
 class ClientTest(unittest.TestCase):
@@ -75,12 +75,13 @@ class ClientTest(unittest.TestCase):
         self.client.stop()
 
     def test_one_txt_msg(self):
-        rta = self.client.txt_msg("prueba")
+        rta = self.client.send_message("prueba")
         self.assertEqual(rta['status'], 200)
 
     def test_1000_txt_msg(self):
         count = 0
         for i in range(0, 1000):
-            rta = self.client.txt_msg("Mensaje {}".format(i))
+            rta = self.client.send_message("Mensaje {}".format(i))
+            self.assertEqual(rta['status'], 200, "Message {0} failed".format(i))
             count += 1
         self.assertEqual(count, 1000)

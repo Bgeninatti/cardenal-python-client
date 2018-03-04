@@ -29,7 +29,7 @@ class CardenalGenerator(object):
         self.stop()
         self._init_socket()
 
-    def txt_msg(self, msg):
+    def send_message(self, msg):
         self.socket.send_json({
             'msg': msg,
             'generator': self.name,
