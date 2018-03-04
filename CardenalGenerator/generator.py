@@ -1,14 +1,15 @@
 import zmq
-import json
 
 DEFAULT_POLLER_TIMEOUT = 2000
 DEFAULT_PORT = 6666
 
 
-class CardenalClient(object):
+class CardenalGenerator(object):
 
-    def __init__(self, ip, timeout=DEFAULT_POLLER_TIMEOUT, port=DEFAULT_PORT):
-        self.ip = ip
+    def __init__(self, name, server,
+                 timeout=DEFAULT_POLLER_TIMEOUT, port=DEFAULT_PORT):
+        self.name = name
+        self.server = server
         self.port = port
         self.poller_timeout = timeout
         self._init_socket()
@@ -16,7 +17,7 @@ class CardenalClient(object):
     def _init_socket(self):
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REQ)
-        self.socket.connect('tcp://%s:%d' % (self.ip, self.port))
+        self.socket.connect('tcp://%s:%d' % (self.server, self.port))
         self.poller = zmq.Poller()
         self.poller.register(self.socket)
 
@@ -28,15 +29,11 @@ class CardenalClient(object):
         self.stop()
         self._init_socket()
 
-    def txt_msg(self, msg, user_id=None, username=None):
-        if user_id is None and username is None:
-            raise ValueError(
-                "Se debe especificar username o user_id como parámetros")
-
+    def txt_msg(self, msg):
         self.socket.send_json({
             'msg': msg,
-            'user_id': user_id,
-            'username': username})
+            'generator': self.name,
+        })
         socks = self.poller.poll(self.poller_timeout)
         if not len(socks):
             return None
